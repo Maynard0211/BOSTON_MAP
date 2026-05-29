@@ -1,19 +1,8 @@
-"""
-Task 3: Cài đặt thuật toán tìm đường
-  - Dijkstra  : Priority Queue, tìm đường ngắn nhất tuyệt đối
-  - A* (A-Star): Dijkstra + Hàm heuristic Haversine để hướng thẳng về đích
-"""
-
 import heapq
 import time
 import numpy as np
 import networkx as nx
 from typing import List, Optional, Tuple
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Haversine heuristic (dùng chung cho A*)
-# ──────────────────────────────────────────────────────────────────────────────
 
 def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     R = 6_371_000.0
@@ -28,25 +17,12 @@ def _min_edge_length(edge_dict: dict) -> float:
     """Lấy trọng số nhỏ nhất trong tập multi-edge giữa hai node."""
     return min((d.get("length", 1.0) for d in edge_dict.values()), default=1.0)
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Dijkstra
-# ──────────────────────────────────────────────────────────────────────────────
-
 def dijkstra(
     G: nx.MultiDiGraph,
     source: int,
     target: int,
 ) -> Tuple[Optional[List[int]], float, float]:
-    """
-    Thuật toán Dijkstra với min-heap.
 
-    Returns
-    -------
-    path        : danh sách node_id từ source → target  (None nếu không có đường)
-    total_dist  : tổng chiều dài (mét)
-    exec_time   : thời gian xử lý (giây)
-    """
     t0 = time.perf_counter()
 
     dist = {source: 0.0}
@@ -80,26 +56,12 @@ def dijkstra(
     path = _reconstruct_path(prev, target)
     return path, dist[target], exec_time
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# A* (A-Star)
-# ──────────────────────────────────────────────────────────────────────────────
-
 def astar(
     G: nx.MultiDiGraph,
     source: int,
     target: int,
 ) -> Tuple[Optional[List[int]], float, float]:
-    """
-    Thuật toán A* với heuristic Haversine.
 
-    h(n) = khoảng cách đường chim bay từ n → target (mét).
-    Admissible vì Haversine ≤ khoảng cách đường bộ thực tế.
-
-    Returns
-    -------
-    path, total_dist, exec_time   (cùng quy ước với dijkstra)
-    """
     t0 = time.perf_counter()
 
     # Tọa độ đích để tính heuristic
@@ -149,11 +111,6 @@ def astar(
 
     path = _reconstruct_path(prev, target)
     return path, g_score[target], exec_time
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Helper
-# ──────────────────────────────────────────────────────────────────────────────
 
 def _reconstruct_path(prev: dict, target: int) -> List[int]:
     path: List[int] = []
