@@ -1,8 +1,3 @@
-"""
-Task 3: Cài đặt thuật toán tìm đường - Bản rút gọn (Chỉ gồm Dijkstra)
-  - Dijkstra : Priority Queue, tìm đường ngắn nhất tuyệt đối
-"""
-
 import heapq
 import time
 import networkx as nx
@@ -10,28 +5,17 @@ from typing import List, Optional, Tuple
 
 
 def _min_edge_length(edge_dict: dict) -> float:
-    """Lấy trọng số nhỏ nhất trong tập multi-edge giữa hai node."""
     return min((d.get("length", 1.0) for d in edge_dict.values()), default=1.0)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # Dijkstra
-# ──────────────────────────────────────────────────────────────────────────────
 
 def dijkstra(
     G: nx.MultiDiGraph,
     source: int,
     target: int,
 ) -> Tuple[Optional[List[int]], float, float]:
-    """
-    Thuật toán Dijkstra với min-heap.
-
-    Returns
-    -------
-    path        : danh sách node_id từ source → target  (None nếu không có đường)
-    total_dist  : tổng chiều dài (mét)
-    exec_time   : thời gian xử lý (giây)
-    """
+   
     t0 = time.perf_counter()
 
     dist = {source: 0.0}
@@ -68,9 +52,7 @@ def dijkstra(
     return path, dist[target], exec_time
 
 
-# ──────────────────────────────────────────────────────────────────────────────
 # Helpers
-# ──────────────────────────────────────────────────────────────────────────────
 
 def _reconstruct_path(prev: dict, target: int) -> List[int]:
     """Truy vết ngược từ target về source để dựng lại lộ trình."""
@@ -86,5 +68,6 @@ def _reconstruct_path(prev: dict, target: int) -> List[int]:
 def path_to_coordinates(
     G: nx.MultiDiGraph, path: List[int]
 ) -> List[Tuple[float, float]]:
-    """Chuyển danh sách node_id thành [(lat, lon), ...] để vẽ PolyLine."""
+    
+#   Chuyển node_id thành [(lat, lon), ...]
     return [(G.nodes[n]["y"], G.nodes[n]["x"]) for n in path]
