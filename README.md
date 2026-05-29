@@ -3,6 +3,8 @@
 thuật toán Dijkstra & A*, giao diện Streamlit + Folium.
 
 ---
+## Dữ liệu
+File quá lớn -> link driver thay thế: https://drive.google.com/file/d/1nl94JWmcYA6jxhGBmfbSw6sVEerQJp0l/view?usp=sharing
 
 ## Cấu trúc dự án
 
