@@ -12,7 +12,6 @@ File quá lớn -> link driver thay thế: https://drive.google.com/file/d/1nl94
 boston_route_finder/
 ├── app.py                       
 ├── modules/
-│   ├── __init__.py
 │   ├── graph_builder.py         
 │   └── routing.py               
 ├── requirements.txt
