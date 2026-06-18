@@ -115,12 +115,98 @@ def build_graph(nodes, edges) -> nx.MultiDiGraph:
 
 
 def build_and_save_graph(pbf_path: str, output_path: str = "boston_graph.pkl") -> nx.MultiDiGraph:
-    """Pipeline đầy đủ: Parse PBF → Build Graph → Lưu .pkl."""
-    nodes, edges = parse_osm_network(pbf_path)
-    G = build_graph(nodes, edges)
+    """Pipeline đầy đủ: Parse PBF → Build Graph → Lưu .pkl. Fallback về đồ thị mô phỏng (Dummy Graph) nếu lỗi pyrosm."""
+    try:
+        nodes, edges = parse_osm_network(pbf_path)
+        G = build_graph(nodes, edges)
+        logger.info("Tạo lập đồ thị thực tế từ PBF thành công.")
+    except Exception as e:
+        logger.warning("Không tạo lập được đồ thị thực tế (lỗi: %s). Hệ thống tự động chuyển sang tạo đồ thị mô phỏng (Dummy Graph) Boston để chạy thử ứng dụng...", str(e))
+        G = build_dummy_graph()
+
     with open(output_path, "wb") as f:
         pickle.dump(G, f, protocol=pickle.HIGHEST_PROTOCOL)
     logger.info("Đã lưu đồ thị vào %s", output_path)
+    return G
+
+
+def build_dummy_graph() -> nx.MultiDiGraph:
+    """Tạo đồ thị mô phỏng liên thông giữa các địa điểm nổi tiếng ở Boston."""
+    G = nx.MultiDiGraph()
+    
+    # 1. Các địa điểm presets và tọa độ của chúng
+    locations = {
+        1:  ("Harvard University",         42.3744, -71.1169),
+        2:  ("MIT",                        42.3601, -71.0942),
+        3:  ("Boston Common",              42.3551, -71.0657),
+        4:  ("Logan Airport",              42.3656, -71.0096),
+        5:  ("Fenway Park",                42.3467, -71.0972),
+        6:  ("Boston City Hall",           42.3601, -71.0578),
+        7:  ("Quincy Market",              42.3599, -71.0544),
+        8:  ("Northeastern University",    42.3398, -71.0892),
+        9:  ("Boston Children's Hospital", 42.3378, -71.1069),
+        10: ("South Station",              42.3519, -71.0552),
+        11: ("Tufts Medical Center",       42.3497, -71.0638),
+        12: ("Museum of Fine Arts",        42.3394, -71.0942),
+        
+        # Một số nút giao trung gian để tạo đường vòng
+        13: ("Cambridge St Intersection",  42.3700, -71.1050),
+        14: ("Broadway Crossing",          42.3650, -71.0950),
+        15: ("Charles River Bridge East",  42.3610, -71.0750),
+        16: ("Charles River Bridge West",  42.3590, -71.0850),
+        17: ("Commonwealth Ave Junc",      42.3490, -71.0850),
+        18: ("Downtown Crossing",          42.3550, -71.0600),
+    }
+    
+    # Thêm nodes
+    for nid, (name, lat, lon) in locations.items():
+        G.add_node(nid, x=lon, y=lat, name=name)
+        
+    # 2. Định nghĩa các cạnh nối và thuộc tính
+    # Cấu trúc: (u, v, highway)
+    edges_to_add = [
+        # Tuyến phía Bắc (Harvard - Cambridge - Broadway - MIT)
+        (1, 13, "primary"), (13, 14, "primary"), (14, 2, "primary"),
+        # Đường vòng phụ qua Charles River West
+        (1, 16, "secondary"), (16, 2, "secondary"),
+        # MIT sang Charles River East sang Boston Common/City Hall
+        (2, 15, "primary"), (15, 3, "primary"), (15, 18, "primary"),
+        # Charles River West nối sang Charles River East
+        (16, 15, "secondary"),
+        # Boston Common - City Hall - Quincy Market - Logan Airport
+        (3, 18, "primary"), (18, 6, "primary"), (6, 7, "primary"), 
+        (7, 4, "motorway"), (18, 4, "motorway"),
+        # MIT sang Fenway Park
+        (2, 5, "primary"),
+        # Fenway Park sang Northeastern sang MFA
+        (5, 17, "secondary"), (17, 8, "primary"), (8, 12, "primary"),
+        # MFA sang Children's Hospital
+        (12, 9, "secondary"),
+        # Children's Hospital sang Tufts Medical
+        (9, 11, "secondary"),
+        # Tufts Medical sang South Station sang Boston Common
+        (11, 10, "primary"), (10, 3, "primary"), (10, 18, "primary"),
+        # Northeastern sang Tufts Medical
+        (8, 11, "primary"),
+        # Boston Common sang Fenway Park trực tiếp
+        (3, 17, "secondary"),
+        # Logan Airport sang South Station qua đường ngầm
+        (4, 10, "motorway")
+    ]
+    
+    # Add các cạnh vào đồ thị (2 chiều)
+    for u, v, hw in edges_to_add:
+        ud = G.nodes[u]
+        vd = G.nodes[v]
+        dist = haversine_distance(ud["y"], ud["x"], vd["y"], vd["x"])
+        attrs = {
+            "length": dist,
+            "highway": hw,
+            "oneway": False
+        }
+        G.add_edge(u, v, **attrs)
+        G.add_edge(v, u, **attrs)
+        
     return G
 
 
