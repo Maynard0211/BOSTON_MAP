@@ -1,6 +1,13 @@
-_pycache_
-.vscode
-cache
-modules/_pycache_
+# Ẩn thư mục cấu hình của VS Code
+.vscode/
+
+# Ẩn tất cả các thư mục cache của Python (sửa lại cho đúng 2 dấu gạch dưới)
+**/__pycache__/
+*.pyc
+
+# Ẩn các thư mục hoặc file cache khác
+cache/
 last_route.json
+
+# Ẩn file script nháp cá nhân
 scratch_replace.py
