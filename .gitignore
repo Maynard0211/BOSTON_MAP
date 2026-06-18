@@ -1,0 +1,6 @@
+_pycache_
+.vscode
+cache
+modules/_pycache_
+last_route.json
+scratch_replace.py
